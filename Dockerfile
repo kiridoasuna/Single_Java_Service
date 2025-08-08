@@ -1,5 +1,5 @@
 # 使用官方的 Maven 镜像作为构建阶段的基础镜像
-FROM maven:3.8.6-openjdk-17-slim AS build
+FROM maven:3.8 AS build
 WORKDIR /app
 
 # 将 pom.xml 和源代码复制到镜像中
@@ -17,7 +17,7 @@ WORKDIR /app
 COPY --from=build /app/target/usermicroservices-0.0.1-SNAPSHOT.jar app.jar
 
 # 暴露应用监听的端口
-EXPOSE 8080
+EXPOSE 8888
 
 # 定义启动命令
 ENTRYPOINT ["java", "-jar", "app.jar"]
