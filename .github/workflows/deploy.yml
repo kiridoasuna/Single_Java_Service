@@ -34,5 +34,49 @@ jobs:
         file: Dockerfile
         push: true
         tags: kiritoa/user-micro-services:latest
+  deploy:
+    needs: build  # 依赖 build 作业成功后执行
+    runs-on: ubuntu-latest  # 运行在 GitHub 提供的 Ubuntu 虚拟环境
+
+    steps:
+      # 步骤 1：拉取代码仓库（包含 docker-compose.yml）
+      - name: Checkout code
+        uses: actions/checkout@v3  # 将仓库代码克隆到虚拟环境，获取 docker-compose.yml
+
+      # 步骤 2：配置 SSH 连接（加载私钥，简化认证）
+      - name: Setup SSH connection
+        uses: webfactory/ssh-agent@v0.5.4  # 第三方 SSH 代理工具，自动管理密钥
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}  # 从 GitHub Secrets 加载 ECS 私钥
+
+      # 步骤 3：信任 ECS 主机（避免 SSH 连接时的交互式确认）
+      - name: Add ECS to known_hosts
+        run: ssh-keyscan -t rsa 39.105.147.115 >> ~/.ssh/known_hosts  # 替换为你的 ECS 公网 IP
+
+      # 步骤 4：在虚拟环境本地生成 .env 文件（存储敏感配置）
+      - name: Create .env file locally
+        run: |
+          echo "SERVER_PORT=8888" > .env  # 服务端口（非敏感配置）
+          # 从 GitHub Secrets 读取敏感配置，避免硬编码
+          echo "SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}" >> .env
+          echo "SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}" >> .env
+          echo "SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" >> .env
+
+      # 步骤 5：同步配置文件到 ECS（核心步骤，解决文件缺失问题）
+      - name: Sync files to ECS
+        run: |
+          # 5.1 在 ECS 上创建项目目录（若不存在）
+          ssh root@39.105.147.115 "mkdir -p /root/spring-app"  # 替换为 ECS 实际目录
+          # 5.2 上传 docker-compose.yml 到 ECS 项目目录
+          scp docker-compose.yml root@39.105.147.115:/root/spring-app
+          # 5.3 上传 .env 文件到 ECS 项目目录
+          scp .env root@39.105.147.115:/root/spring-app
+
+      # 步骤 6：在 ECS 上执行部署命令
+      - name: Deploy with docker-compose
+        run: |
+          ssh root@39.105.147.115 'cd /root/spring-app && \
+            docker-compose -f docker-compose.yml pull && \  # 拉取最新镜像
+            docker-compose -f docker-compose.yml up -d --remove-orphans'  # 启动服务并清理旧容器
 
         
