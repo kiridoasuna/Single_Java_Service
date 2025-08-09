@@ -33,5 +33,6 @@ jobs:
         context: .
         file: Dockerfile
         push: true
-        tags: john_doe/user-micro-services:latest
+        tags: kiritoa/services:latest
 
+        
