@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   user-micro-services:
-    image: user-micro-services:latest
+    image: kiritoa/user-micro-services:latest
     build:
       context: .
       dockerfile: Dockerfile
