@@ -76,7 +76,7 @@ jobs:
       - name: Deploy with docker-compose
         run: |
           ssh root@47.238.136.212 'cd /root/spring-app && \
-            docker-compose -f docker-compose.yml pull && \  # 拉取最新镜像
-            docker-compose -f docker-compose.yml up -d --remove-orphans'  # 启动服务并清理旧容器
+            docker compose -f docker-compose.yml pull && \  # 拉取最新镜像
+            docker compose -f docker-compose.yml up -d --remove-orphans'  # 启动服务并清理旧容器
 
         
