@@ -51,7 +51,7 @@ jobs:
 
       # 步骤 3：信任 ECS 主机（避免 SSH 连接时的交互式确认）
       - name: Add ECS to known_hosts
-        run: ssh-keyscan -t rsa 39.105.147.115 >> ~/.ssh/known_hosts  # 替换为你的 ECS 公网 IP
+        run: ssh-keyscan -t rsa 47.238.136.212 >> ~/.ssh/known_hosts  # 替换为你的 ECS 公网 IP
 
       # 步骤 4：在虚拟环境本地生成 .env 文件（存储敏感配置）
       - name: Create .env file locally
@@ -66,16 +66,16 @@ jobs:
       - name: Sync files to ECS
         run: |
           # 5.1 在 ECS 上创建项目目录（若不存在）
-          ssh root@39.105.147.115 "mkdir -p /root/spring-app"  # 替换为 ECS 实际目录
+          ssh root@47.238.136.212 "mkdir -p /root/spring-app"  # 替换为 ECS 实际目录
           # 5.2 上传 docker-compose.yml 到 ECS 项目目录
-          scp docker-compose.yml root@39.105.147.115:/root/spring-app
+          scp docker-compose.yml root@47.238.136.212:/root/spring-app
           # 5.3 上传 .env 文件到 ECS 项目目录
-          scp .env root@39.105.147.115:/root/spring-app
+          scp .env root@47.238.136.212:/root/spring-app
 
       # 步骤 6：在 ECS 上执行部署命令
       - name: Deploy with docker-compose
         run: |
-          ssh root@39.105.147.115 'cd /root/spring-app && \
+          ssh root@47.238.136.212 'cd /root/spring-app && \
             docker-compose -f docker-compose.yml pull && \  # 拉取最新镜像
             docker-compose -f docker-compose.yml up -d --remove-orphans'  # 启动服务并清理旧容器
 
